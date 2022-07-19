@@ -1,0 +1,4 @@
+{
+    "serverPort": 5000,
+    "mongoDbUrl": "mongodb+srv://new_user:RUDx5TeK7lHHfyrX@cloud-disk.bwpfh.mongodb.net/?retryWrites=true&w=majority"
+}
