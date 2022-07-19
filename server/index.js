@@ -2,7 +2,12 @@ const express = require("express");
 const mongoose = require("mongoose");
 const config = require("config");
 
+const authRouter = require("./routes/auth.route");
+
 const app = express();
+
+app.use(express.json());
+app.use("/api/auth", authRouter);
 
 const PORT = config.get("serverPort");
 const mongoDbUrl = config.get("mongoDbUrl");
