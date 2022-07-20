@@ -2,8 +2,12 @@ const Router = require("express");
 const User = require("../models/Users");
 const bcrypt = require("bcrypt");
 const { check, validationResult } = require("express-validator");
+const jwt = require("jsonwebtoken");
+const config = require("config");
 
 const router = new Router();
+
+const secretKey = config.get("secretKey");
 
 router.post(
   "/registration",
@@ -30,7 +34,7 @@ router.post(
           .json({ message: `User with email ${email} already exist` });
       }
 
-      const hashPassword = await bcrypt.hash(password, 15);
+      const hashPassword = await bcrypt.hash(password, 8);
       const newUser = new User({ email, password: hashPassword });
       await newUser.save();
       res.json({ message: "User was created" });
@@ -40,5 +44,38 @@ router.post(
     }
   }
 );
+
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const currentUser = await User.findOne({ email });
+
+    if (!currentUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isPasswordValid = bcrypt.compareSync(password, currentUser.password);
+
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: "Password is invalid" });
+    }
+
+    const token = jwt.sign({ id: currentUser.id }, secretKey, { expiresIn: "24h" });
+
+    res.json({
+      token,
+      user: {
+        id: currentUser.id,
+        email: currentUser.email,
+        diskSpace: currentUser.diskSpace,
+        usedSpace: currentUser.usedSpace,
+        avatar: currentUser.avatar,
+      },
+    });
+  } catch (e) {
+    console.log(e);
+    res.send({ message: "Server error" });
+  }
+});
 
 module.exports = router;
